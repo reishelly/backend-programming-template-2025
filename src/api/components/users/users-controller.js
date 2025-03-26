@@ -1,6 +1,7 @@
 const usersService = require('./users-service');
 const { errorResponder, errorTypes } = require('../../../core/errors');
-const { hashPassword } = require('../../../utils/password');
+const { hashPassword, passwordMatched } = require('../../../utils/password');
+const { compare } = require('bcrypt');
 
 async function getUsers(request, response, next) {
   try {
@@ -145,7 +146,67 @@ async function updateUser(request, response, next) {
   }
 }
 
+
 async function changePassword(request, response, next) {
+  try {
+    const id = request.params.id;
+    const {
+      old_password: oldPassword,
+      new_password: newPassword,
+      confirm_new_password: confirmNewPassword,
+    } = request.body;
+
+    // 1. Check if user exists
+    const user = await usersService.getUser(id);
+    if (!user) {
+      return response.status(404).json({ message: "User not found" });
+    }
+
+    // 2. Verify if the old password is correct
+    const isMatch = await compare(oldPassword, user.password);
+    if (!isMatch) {
+      return response.status(400).json({ message: "Old password is incorrect" });
+    }
+
+    // 3. Ensure new password is at least 8 characters long
+    if (newPassword.length < 8) {
+      return response.status(400).json({ message: "New password must be at least 8 characters long" });
+    }
+
+    // 4. Ensure new password is different from old password
+    if (oldPassword === newPassword) {
+      return response.status(400).json({ message: "New password must be different from old password" });
+    }
+
+    // 5. Ensure new password and confirm password match
+    if (newPassword !== confirmNewPassword) {
+      return response.status(400).json({ message: "New password and confirm password do not match" });
+    }
+
+    // 6. Hash the new password
+    const hashedNewPassword = await hashPassword(newPassword);
+
+    // 7. Update password in the database
+    const updated = await usersService.updateUserPassword(id, hashedNewPassword);
+    if (!updated) {
+      return response.status(500).json({ message: "Failed to update password" });
+    }
+
+    return response.status(200).json({ message: "Password updated successfully" });
+
+  } catch (error) {
+    return next(error);
+  }
+}
+
+
+//async function changePassword(request, response, next) {
+  //const id= request.params.id;
+  //const{
+    //old_password: oldPassword,
+    //new_password: newPassword,
+    //confirm_new_password:confirmNewPassword,
+  //} = request.body;
   // TODO: Implement this function
   // const id = request.params.id;
   // const {
@@ -160,7 +221,8 @@ async function changePassword(request, response, next) {
   // - the new password is at least 8 characters long
   // - the new password is different from the old password
   // - the new password and confirm new password match
-  //
+  //compare(hashedPassword)= old_password;
+  //if(passwordMatched=hashedPassword)
   // Note that the password is hashed in the database, so you need to
   // compare the hashed password with the old password. Use the passwordMatched
   // function from src/utils/password.js to compare the old password with the
@@ -171,8 +233,8 @@ async function changePassword(request, response, next) {
   //
   // If all conditions are met, update the user's password and return
   // a success response.
-  return next(errorResponder(errorTypes.NOT_IMPLEMENTED));
-}
+  //return next(errorResponder(errorTypes.NOT_IMPLEMENTED));
+
 
 async function deleteUser(request, response, next) {
   try {
@@ -197,5 +259,6 @@ module.exports = {
   createUser,
   updateUser,
   changePassword,
-  deleteUser,
+  deleteUser
 };
+

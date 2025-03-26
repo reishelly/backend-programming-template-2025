@@ -24,6 +24,10 @@ async function updateUser(id, email, fullName) {
 async function deleteUser(id) {
   return usersRepository.deleteUser(id);
 }
+async function updateUserPassword(id, hashedPassword) {
+  return await db('users').where({ id }).update({ password: hashedPassword });
+}
+
 
 module.exports = {
   getUsers,
