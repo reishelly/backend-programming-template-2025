@@ -96,6 +96,29 @@ async function createUser(request, response, next) {
   }
 }
 
+async function loginUser(request, response, next) {
+  try {
+    const { email, password } = request.body;
+
+    // 1. Check if user exists
+    const user = await usersService.getUserByEmail(email);
+    if (!user) {
+      return response.status(403).json({ message: "INVALID_PASSWORD" });
+    }
+
+    // 2. Compare provided password with hashed password in the database
+    const isMatch = await passwordMatched(password, user.password);
+    if (!isMatch) {
+      return response.status(403).json({ message: "INVALID_PASSWORD" });
+    }
+
+    // 3. If login is successful
+    return response.status(200).json({ message: "Login successful", user });
+  } catch (error) {
+    return next(error);
+  }
+}
+
 async function updateUser(request, response, next) {
   try {
     const { email, full_name: fullName } = request.body;
@@ -259,6 +282,7 @@ module.exports = {
   createUser,
   updateUser,
   changePassword,
-  deleteUser
+  deleteUser,
+  loginUser
 };
 

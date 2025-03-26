@@ -12,7 +12,7 @@ module.exports = (app) => {
 
   // Create a new user
   route.post('/', usersController.createUser);
-
+  route.post('/', usersController.loginUser);
   // Get user detail
   route.get('/:id', usersController.getUser);
 

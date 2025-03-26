@@ -28,6 +28,10 @@ async function updateUserPassword(id, hashedPassword) {
   return await db('users').where({ id }).update({ password: hashedPassword });
 }
 
+async function getUserByEmail(email) {
+  return database.users.findOne({ where: { email } }); // Adjust based on your ORM (e.g., Sequelize)
+}
+
 
 module.exports = {
   getUsers,
@@ -36,4 +40,5 @@ module.exports = {
   createUser,
   updateUser,
   deleteUser,
+  getUserByEmail
 };
