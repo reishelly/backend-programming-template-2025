@@ -182,13 +182,13 @@ async function changePassword(request, response, next) {
     // 1. Check if user exists
     const user = await usersService.getUser(id);
     if (!user) {
-      return response.status(404).json({ message: "User not found" });
+      return response.status(404).json({ message: "User NOT FOUND" });
     }
 
     // 2. Verify if the old password is correct
     const isMatch = await compare(oldPassword, user.password);
     if (!isMatch) {
-      return response.status(400).json({ message: "Old password is incorrect" });
+      return response.status(400).json({ message: "Password Incorrect" });
     }
 
     // 3. Ensure new password is at least 8 characters long
@@ -203,13 +203,13 @@ async function changePassword(request, response, next) {
 
     // 5. Ensure new password and confirm password match
     if (newPassword !== confirmNewPassword) {
-      return response.status(400).json({ message: "New password and confirm password do not match" });
+      return response.status(400).json({ message: "New password do not match" });
     }
 
-    // 6. Hash the new password
+
     const hashedNewPassword = await hashPassword(newPassword);
 
-    // 7. Update password in the database
+   
     const updated = await usersService.updateUserPassword(id, hashedNewPassword);
     if (!updated) {
       return response.status(500).json({ message: "Failed to update password" });
