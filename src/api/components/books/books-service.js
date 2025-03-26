@@ -24,5 +24,6 @@ module.exports = {
   getBookById,
   updateBook,
   deleteBook,
+  getBooks
 };
 
